@@ -20,6 +20,8 @@ final class DIContainer {
   
   private func registerDependencies() {
     let assemblies: [Assembly] = [
+      NetworkAssembly(),
+      DatabaseAssembly(),
       AppAssembly(),
       PresentationAssembly()
     ]
