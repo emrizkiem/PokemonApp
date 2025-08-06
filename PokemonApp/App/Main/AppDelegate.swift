@@ -65,8 +65,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     UIActivityIndicatorView.appearance().color = UIColor(hex: Constants.Colors.primary)
     
     if #available(iOS 13.0, *) {
-      UIApplication.shared.windows.forEach { window in
-        window.overrideUserInterfaceStyle = .light
+      for scene in UIApplication.shared.connectedScenes {
+        if let windowScene = scene as? UIWindowScene {
+          for window in windowScene.windows {
+            window.overrideUserInterfaceStyle = .light
+          }
+        }
       }
     }
   }
