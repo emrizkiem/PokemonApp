@@ -178,7 +178,6 @@ final class RegisterViewController: BaseViewController<RegisterViewModel> {
     viewModel.registerSuccess
       .observe(on: MainScheduler.instance)
       .subscribe(onNext: { [weak self] user in
-        print("✅ Registration successful for: \(user.fullName)")
         self?.handleRegistrationSuccess(user)
       })
       .disposed(by: disposeBag)
@@ -304,6 +303,5 @@ final class RegisterViewController: BaseViewController<RegisterViewModel> {
   
   deinit {
     NotificationCenter.default.removeObserver(self)
-    print("🎯 RegisterViewController deinitialized")
   }
 }

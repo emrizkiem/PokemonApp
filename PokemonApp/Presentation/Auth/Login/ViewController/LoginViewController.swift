@@ -127,7 +127,6 @@ final class LoginViewController: BaseViewController<LoginViewModel> {
   override func setupBindings() {
     guard let viewModel = viewModel else { return }
     
-    // Input bindings
     emailTextField.rx_text.orEmpty
       .bind(to: viewModel.email)
       .disposed(by: disposeBag)
@@ -136,7 +135,6 @@ final class LoginViewController: BaseViewController<LoginViewModel> {
       .bind(to: viewModel.password)
       .disposed(by: disposeBag)
     
-    // Button actions
     loginButton.rx.tap
       .subscribe(onNext: { [weak self] in
         self?.view.endEditing(true)
@@ -150,11 +148,9 @@ final class LoginViewController: BaseViewController<LoginViewModel> {
       })
       .disposed(by: disposeBag)
     
-    // Output bindings
     viewModel.loginSuccess
       .observe(on: MainScheduler.instance)
       .subscribe(onNext: { [weak self] user in
-        print("✅ Login successful for: \(user.fullName)")
         self?.delegate?.loginDidSucceed(user: user)
       })
       .disposed(by: disposeBag)

@@ -17,7 +17,7 @@ final class ValidationUtils {
     let isValid = emailPredicate.evaluate(with: email)
     
     if !isValid {
-      print("⚠️ ValidationUtils: Invalid email format - \(email)")
+      print("ValidationUtils: Invalid email format - \(email)")
     }
     
     return isValid
@@ -27,7 +27,7 @@ final class ValidationUtils {
     let isValid = password.count >= 6
     
     if !isValid {
-      print("⚠️ ValidationUtils: Password too weak - \(password.count) characters")
+      print("ValidationUtils: Password too weak - \(password.count) characters")
     }
     
     return isValid

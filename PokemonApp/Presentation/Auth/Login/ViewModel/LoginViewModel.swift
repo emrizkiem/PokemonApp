@@ -56,7 +56,6 @@ final class LoginViewModel: BaseViewModel, LoginViewModelProtocol {
       return
     }
     
-    print("🎯 LoginViewModel: Attempting login for \(emailValue)")
     setLoading(true)
     
     loginUseCase.execute(email: emailValue, password: passwordValue)
@@ -67,16 +66,12 @@ final class LoginViewModel: BaseViewModel, LoginViewModelProtocol {
           
           switch result {
           case .success(let user):
-            print("✅ LoginViewModel: Login successful")
             self?.loginSuccess.accept(user)
-            
           case .failure(let authError):
-            print("❌ LoginViewModel: Login failed - \(authError)")
             self?.loginError.accept(authError.errorDescription ?? "Login failed")
           }
         },
         onError: { [weak self] error in
-          print("❌ LoginViewModel: Unexpected error - \(error)")
           self?.setLoading(false)
           self?.loginError.accept("An unexpected error occurred. Please try again.")
         }

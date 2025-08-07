@@ -7,29 +7,32 @@
 
 import Foundation
 
-struct User {
+struct User: Codable, Equatable {
   let id: String
   let email: String
   let fullName: String
-  let createdAt: Date
+  var accessToken: String?
+  let createdAt: Date?
   
-  init(id: String, email: String, fullName: String, createdAt: Date) {
+  init(id: String = UUID().uuidString, email: String, fullName: String, accessToken: String? = nil, createdAt: Date? = Date()) {
     self.id = id
     self.email = email
     self.fullName = fullName
+    self.accessToken = accessToken
     self.createdAt = createdAt
   }
   
-  var joinedDateFormatted: String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "MMMM yyyy"
-    return formatter.string(from: createdAt)
+  var initials: String {
+    let components = fullName.split(separator: " ")
+    let initials = components.compactMap { $0.first }.map { String($0) }.joined()
+    return String(initials.prefix(2)).uppercased()
   }
   
-  var initials: String {
-    let names = fullName.split(separator: " ")
-    let firstInitial = names.first?.first?.uppercased() ?? ""
-    let lastInitial = names.count > 1 ? names.last?.first?.uppercased() ?? "" : ""
-    return "\(firstInitial)\(lastInitial)"
+  var joinedDateString: String {
+    guard let createdAt = createdAt else { return "Unknown" }
+    
+    let formatter = DateFormatter()
+    formatter.dateFormat = "dd MMMM yyyy"
+    return formatter.string(from: createdAt)
   }
 }

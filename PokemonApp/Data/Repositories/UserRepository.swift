@@ -27,7 +27,6 @@ final class UserRepository: UserRepositoryProtocol {
       .do(onNext: { [weak self] user in
         if let user = user {
           self?.userDefaultsManager.setUserSession(userId: user.id)
-          print("✅ Session saved for user: \(user.fullName)")
         }
       })
   }
@@ -56,7 +55,6 @@ final class UserRepository: UserRepositoryProtocol {
     )
     .do(onNext: { [weak self] user in
       self?.userDefaultsManager.setUserSession(userId: user.id)
-      print("✅ Session saved for new user: \(user.fullName)")
     })
   }
   

@@ -42,6 +42,6 @@ final class SplashCoordinator: SplashCoordinatorProtocol {
 
 extension SplashCoordinator: SplashViewControllerDelegate {
   func splashDidComplete() {
-    delegate?.splashDidFinish()
+    self.delegate?.splashDidFinish()
   }
 }

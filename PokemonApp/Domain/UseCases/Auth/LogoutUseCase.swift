@@ -23,19 +23,14 @@ final class LogoutUseCase: LogoutUseCaseProtocol {
   
   init(userRepository: UserRepositoryProtocol) {
     self.userRepository = userRepository
-    print("🎯 LogoutUseCase initialized")
   }
   
   func execute() -> Observable<LogoutResult> {
-    print("🎯 LogoutUseCase: Executing logout")
-    
     return userRepository.logoutUser()
       .map { _ in
-        print("✅ LogoutUseCase: Logout successful")
         return LogoutResult.success
       }
       .catch { error in
-        print("❌ LogoutUseCase: Logout error - \(error)")
         return Observable.just(.failure(.loginFailed))
       }
   }

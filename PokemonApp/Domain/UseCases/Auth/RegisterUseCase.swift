@@ -20,20 +20,13 @@ enum RegisterResult {
 final class RegisterUseCase: RegisterUseCaseProtocol {
   
   private let userRepository: UserRepositoryProtocol
-  private let disposeBag = DisposeBag() // ✅ FIX: Use instance property
+  private let disposeBag = DisposeBag() 
   
   init(userRepository: UserRepositoryProtocol) {
     self.userRepository = userRepository
-    print("🎯 RegisterUseCase initialized")
-  }
-  
-  deinit {
-    print("🎯 RegisterUseCase deinitialized")
   }
   
   func execute(email: String, fullName: String, password: String) -> Observable<RegisterResult> {
-    print("🎯 RegisterUseCase: Executing registration for \(email)")
-    
     return Observable.create { [weak self] observer in
       guard let self = self else {
         observer.onNext(.failure(.registrationFailed))
@@ -46,29 +39,25 @@ final class RegisterUseCase: RegisterUseCaseProtocol {
       let cleanFullName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
       
       guard !cleanEmail.isEmpty else {
-        print("❌ RegisterUseCase: Empty email provided")
         observer.onNext(.failure(.invalidEmail))
         observer.onCompleted()
         return Disposables.create()
       }
       
       guard !cleanFullName.isEmpty else {
-        print("❌ RegisterUseCase: Empty full name provided")
         observer.onNext(.failure(.invalidFullName))
         observer.onCompleted()
         return Disposables.create()
       }
       
       guard !password.isEmpty else {
-        print("❌ RegisterUseCase: Empty password provided")
         observer.onNext(.failure(.weakPassword))
         observer.onCompleted()
         return Disposables.create()
       }
       
-      print("🎯 RegisterUseCase: Calling repository.registerUser")
-      
-      // ✅ FIX: Proper subscription management
+      print("RegisterUseCase: Calling repository.registerUser")
+    
       let subscription = self.userRepository.registerUser(
         email: cleanEmail,
         fullName: cleanFullName,
@@ -76,12 +65,12 @@ final class RegisterUseCase: RegisterUseCaseProtocol {
       )
         .subscribe(
           onNext: { user in
-            print("✅ RegisterUseCase: Registration successful for \(user.fullName)")
+            print("RegisterUseCase: Registration successful for \(user.fullName)")
             observer.onNext(.success(user))
             observer.onCompleted()
           },
           onError: { error in
-            print("❌ RegisterUseCase: Registration error - \(error)")
+            print("RegisterUseCase: Registration error - \(error)")
             
             if let authError = error as? AuthError {
               observer.onNext(.failure(authError))
@@ -91,11 +80,10 @@ final class RegisterUseCase: RegisterUseCaseProtocol {
             observer.onCompleted()
           },
           onCompleted: {
-            print("🎯 RegisterUseCase: Repository observable completed")
+            print("RegisterUseCase: Repository observable completed")
           }
         )
       
-      // ✅ FIX: Return proper disposable
       return Disposables.create {
         subscription.dispose()
       }

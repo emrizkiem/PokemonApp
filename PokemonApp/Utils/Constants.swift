@@ -58,7 +58,7 @@ struct Constants {
     static let warning = "#FF9800"
     static let info = "#2196F3"
     static let border = "#404040"
-    static let borderLight = "#505050"     
+    static let borderLight = "#505050"
     static let borderDark = "#2A2A2A"
   }
   
@@ -122,6 +122,25 @@ extension Constants {
     struct Success {
       static let registrationSuccessful = "Registration Successful!"
       static let welcomeMessage = "Welcome to Pokémon"
+    }
+    
+    struct Home {
+      static let searchPlaceholder = "Search Pokémon..."
+      static let noPokemonFound = "No Pokémon found"
+      static let loadingPokemon = "Loading Pokémon..."
+    }
+    
+    struct Profile {
+      static let pokemonMaster = "Pokemon Master"
+      static let fullNameLabel = "Full Name"
+      static let emailLabel = "Email"
+      static let joinedLabel = "Joined"
+      static let pokemonViewedLabel = "Pokemon Viewed"
+      static let logoutButton = "Logout"
+      static let logoutConfirmTitle = "Logout"
+      static let logoutConfirmMessage = "Are you sure you want to logout?"
+      static let cancel = "Cancel"
+      static let logout = "Logout"
     }
   }
 }

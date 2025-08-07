@@ -69,7 +69,6 @@ final class RegisterViewModel: BaseViewModel, RegisterViewModelProtocol {
       return
     }
     
-    print("🎯 RegisterViewModel: Attempting registration for \(emailValue)")
     setLoading(true)
     
     registerUseCase.execute(
@@ -84,16 +83,12 @@ final class RegisterViewModel: BaseViewModel, RegisterViewModelProtocol {
         
         switch result {
         case .success(let user):
-          print("✅ RegisterViewModel: Registration successful")
           self?.registerSuccess.accept(user)
-          
         case .failure(let authError):
-          print("❌ RegisterViewModel: Registration failed - \(authError)")
           self?.registerError.accept(authError.errorDescription ?? "Registration failed")
         }
       },
       onError: { [weak self] error in
-        print("❌ RegisterViewModel: Unexpected error - \(error)")
         self?.setLoading(false)
         self?.registerError.accept("An unexpected error occurred. Please try again.")
       }

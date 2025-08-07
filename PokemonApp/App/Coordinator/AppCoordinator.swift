@@ -19,6 +19,11 @@ final class AppCoordinator: AppCoordinatorProtocol {
   
   private var splashCoordinator: SplashCoordinatorProtocol?
   private var authCoordinator: AuthCoordinatorProtocol?
+  private var mainAppCoordinator: MainTabBarCoordinatorProtocol?
+  
+  private lazy var userDefaultsManager: UserDefaultsManagerProtocol = {
+    return container.resolve(UserDefaultsManagerProtocol.self)!
+  }()
   
   private lazy var mainNavigationController: UINavigationController = {
     let navController = UINavigationController()
@@ -45,8 +50,7 @@ final class AppCoordinator: AppCoordinatorProtocol {
   }
   
   private func showAuthFlow() {
-    splashCoordinator?.delegate = nil
-    splashCoordinator = nil
+    cleanupSplashCoordinator()
     
     authCoordinator = container.resolve(AuthCoordinatorProtocol.self)
     authCoordinator?.delegate = self
@@ -54,21 +58,36 @@ final class AppCoordinator: AppCoordinatorProtocol {
   }
   
   private func showMainApp(user: User) {
-    authCoordinator?.delegate = nil
-    authCoordinator = nil
+    cleanupAuthCoordinator()
     
-    // TODO: Implement MainAppCoordinator using same navigationController
-    showTemporaryAlert(
-      title: "Welcome! 🎉",
-      message: "Hello \(user.fullName)!\n\nMain App Flow will be implemented next!"
-    )
+    mainAppCoordinator = container.resolve(MainTabBarCoordinatorProtocol.self, argument: user)
+    mainAppCoordinator?.delegate = self
+    mainAppCoordinator?.start(navigationController: mainNavigationController)
   }
   
   private func handleAuthCancellation() {
+    cleanupAuthCoordinator()
+    showSplashScreen()
+  }
+  
+  private func handleMainAppLogout() {
+    cleanupMainAppCoordinator()
+    showAuthFlow()
+  }
+  
+  private func cleanupSplashCoordinator() {
+    splashCoordinator?.delegate = nil
+    splashCoordinator = nil
+  }
+  
+  private func cleanupAuthCoordinator() {
     authCoordinator?.delegate = nil
     authCoordinator = nil
-    
-    showSplashScreen()
+  }
+  
+  private func cleanupMainAppCoordinator() {
+    mainAppCoordinator?.delegate = nil
+    mainAppCoordinator = nil
   }
   
   private func showTemporaryAlert(title: String, message: String) {
@@ -94,39 +113,32 @@ extension AppCoordinator: SplashCoordinatorDelegate {
   }
   
   private func checkUserSession() {
-    // TODO: Use GetCurrentUserUseCase to check if user is logged in
-    /*
-    getCurrentUserUseCase.execute()
-      .observe(on: MainScheduler.instance)
-      .subscribe(onNext: { [weak self] result in
-        switch result {
-        case .loggedIn(let user):
-          print("✅ User already logged in: \(user.fullName)")
-          self?.showMainApp(user: user)
-          
-        case .notLoggedIn:
-          print("🎯 No active session, showing auth flow")
-          self?.showAuthFlow()
-          
-        case .error(let error):
-          print("❌ Session check error: \(error), showing auth flow")
-          self?.showAuthFlow()
-        }
-      })
-      .disposed(by: disposeBag)
-    */
-    
-    // For now, always show auth flow
-    showAuthFlow()
+    if userDefaultsManager.hasValidSession() {
+      guard let user = userDefaultsManager.getCurrentUser() else {
+        showAuthFlow()
+        return
+      }
+      
+      showMainApp(user: user)
+    } else {
+      showAuthFlow()
+    }
   }
 }
 
 extension AppCoordinator: AuthCoordinatorDelegate {
   func authDidComplete(user: User) {
+    userDefaultsManager.saveCurrentUser(user)
     showMainApp(user: user)
   }
   
   func authDidCancel() {
     handleAuthCancellation()
+  }
+}
+
+extension AppCoordinator: MainTabBarCoordinatorDelegate {
+  func mainAppDidLogout() {
+    handleMainAppLogout()
   }
 }

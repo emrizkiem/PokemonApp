@@ -45,7 +45,12 @@ final class AuthCoordinator: AuthCoordinatorProtocol {
     }
     
     loginViewController.delegate = self
-    navigationController?.setViewControllers([loginViewController], animated: true)
+    navigationController?.setViewControllers([loginViewController], animated: false)
+    
+    loginViewController.view.alpha = 0
+    UIView.animate(withDuration: 0.25) {
+      loginViewController.view.alpha = 1
+    }
   }
   
   func showRegister() {
@@ -87,8 +92,10 @@ final class AuthCoordinator: AuthCoordinatorProtocol {
 }
 
 extension AuthCoordinator: LoginViewControllerDelegate {
-  
   func loginDidSucceed(user: User) {
+    let userDefaultsManager = container.resolve(UserDefaultsManagerProtocol.self)!
+    userDefaultsManager.saveCurrentUser(user)
+    
     handleAuthSuccess(user: user)
   }
   
@@ -98,8 +105,10 @@ extension AuthCoordinator: LoginViewControllerDelegate {
 }
 
 extension AuthCoordinator: RegisterViewControllerDelegate {
-  
   func registerDidSucceed(user: User) {
+    let userDefaultsManager = container.resolve(UserDefaultsManagerProtocol.self)!
+    userDefaultsManager.saveCurrentUser(user)
+    
     handleAuthSuccess(user: user)
   }
   

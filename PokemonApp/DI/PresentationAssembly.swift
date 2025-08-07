@@ -12,6 +12,8 @@ final class PresentationAssembly: Assembly {
   func assemble(container: Container) {
     assembleSplashModule(container: container)
     assembleAuthModule(container: container)
+    assembleHomeModule(container: container)
+    assembleProfileModule(container: container)
   }
   
   private func assembleSplashModule(container: Container) {
@@ -67,6 +69,42 @@ final class PresentationAssembly: Assembly {
       }
       
       viewController.viewModel = viewModel
+      return viewController
+    }
+  }
+  
+  private func assembleHomeModule(container: Container) {
+    container.register(HomeViewModel.self) { resolver in
+      return HomeViewModel()
+    }
+    
+    container.register(HomeViewController.self) { resolver in
+      let viewController = HomeViewController()
+      
+      guard let viewModel = resolver.resolve(HomeViewModel.self) else {
+        fatalError("❌ DI: Failed to resolve HomeViewModel")
+      }
+      
+      viewController.viewModel = viewModel
+      return viewController
+    }
+  }
+  
+  private func assembleProfileModule(container: Container) {
+    container.register(ProfileViewModel.self) { resolver in
+      return ProfileViewModel()
+    }
+    
+    container.register(ProfileViewController.self) { resolver in
+      let viewController = ProfileViewController()
+      
+      guard let viewModel = resolver.resolve(ProfileViewModel.self),
+            let userDefaultsManager = resolver.resolve(UserDefaultsManagerProtocol.self) else {
+        fatalError("❌ DI: Failed to resolve Profile")
+      }
+      
+      viewController.viewModel = viewModel
+      viewController.userDefaultsManager = userDefaultsManager
       return viewController
     }
   }

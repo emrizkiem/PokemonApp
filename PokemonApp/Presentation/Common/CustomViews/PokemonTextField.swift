@@ -75,6 +75,11 @@ final class PokemonTextField: UIView {
     set { textField.keyboardType = newValue }
   }
   
+  var returnKeyType: UIReturnKeyType {
+    get { return textField.returnKeyType }
+    set { textField.returnKeyType = newValue }
+  }
+  
   var isSecureTextEntry: Bool {
     get { return textField.isSecureTextEntry }
     set { textField.isSecureTextEntry = newValue }

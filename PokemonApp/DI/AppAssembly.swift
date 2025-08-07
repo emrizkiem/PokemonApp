@@ -18,5 +18,9 @@ final class AppAssembly: Assembly {
     container.register(AuthCoordinatorProtocol.self) { resolver in
       AuthCoordinator(container: resolver)
     }
+    
+    container.register(MainTabBarCoordinatorProtocol.self) { (resolver, user: User) in
+      MainTabBarCoordinator(container: resolver, user: user)
+    }
   }
 }

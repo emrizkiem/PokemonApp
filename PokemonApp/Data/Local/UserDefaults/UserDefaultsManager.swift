@@ -18,8 +18,12 @@ protocol UserDefaultsManagerProtocol {
   var lastSyncDate: Date? { get set }
   var isUserLoggedIn: Bool { get set }
   
+  // Extended methods for User management
+  func saveCurrentUser(_ user: User)
+  func getCurrentUser() -> User?
   func clearUserSession()
   func setUserSession(userId: String)
+  func hasValidSession() -> Bool
 }
 
 final class UserDefaultsManager: UserDefaultsManagerProtocol {
@@ -28,6 +32,7 @@ final class UserDefaultsManager: UserDefaultsManagerProtocol {
   
   private struct Keys {
     static let currentUserId = "pokemon_app_current_user_id"
+    static let currentUserData = "pokemon_app_current_user_data"
     static let isFirstLaunch = "pokemon_app_is_first_launch"
     static let lastSyncDate = "pokemon_app_last_sync_date"
     static let isUserLoggedIn = "pokemon_app_is_user_logged_in"
@@ -43,6 +48,7 @@ final class UserDefaultsManager: UserDefaultsManagerProtocol {
     }
   }
   
+  // MARK: - Generic Methods
   func set<T>(_ value: T, for key: String) {
     userDefaults.set(value, forKey: key)
     userDefaults.synchronize()
@@ -65,6 +71,7 @@ final class UserDefaultsManager: UserDefaultsManagerProtocol {
     return userDefaults.object(forKey: key) != nil
   }
   
+  // MARK: - Session Properties
   var currentUserId: String? {
     get { userDefaults.string(forKey: Keys.currentUserId) }
     set {
@@ -97,10 +104,59 @@ final class UserDefaultsManager: UserDefaultsManagerProtocol {
     set { set(newValue, for: Keys.isUserLoggedIn) }
   }
   
+  // MARK: - User Management Methods (All in UserDefaults)
+  func saveCurrentUser(_ user: User) {
+    do {
+      // Configure JSONEncoder dengan date strategy
+      let encoder = JSONEncoder()
+      encoder.dateEncodingStrategy = .iso8601
+      
+      let userData = try encoder.encode(user)
+      set(userData, for: Keys.currentUserData)
+      setUserSession(userId: user.id)
+      
+      print("✅ User saved: \(user.fullName)")
+      
+    } catch {
+      print("❌ Failed to save user: \(error.localizedDescription)")
+    }
+  }
+  
+  func getCurrentUser() -> User? {
+    guard isUserLoggedIn else {
+      print("🔍 No active user session")
+      return nil
+    }
+    
+    let userData: Data = get(Data.self, for: Keys.currentUserData, defaultValue: Data())
+    guard !userData.isEmpty else {
+      print("🔍 No user data found")
+      return nil
+    }
+    
+    do {
+      // Configure JSONDecoder dengan date strategy
+      let decoder = JSONDecoder()
+      decoder.dateDecodingStrategy = .iso8601
+      
+      let user = try decoder.decode(User.self, from: userData)
+      print("✅ Retrieved user: \(user.fullName)")
+      return user
+      
+    } catch {
+      print("❌ Failed to decode user: \(error.localizedDescription)")
+      print("❌ Error details: \(error)")
+      clearUserSession() // Clear corrupted session
+      return nil
+    }
+  }
+  
   func clearUserSession() {
     currentUserId = nil
     isUserLoggedIn = false
     lastSyncDate = nil
+    remove(for: Keys.currentUserData)
+    
     print("⚙️ User session cleared")
   }
   
@@ -109,5 +165,9 @@ final class UserDefaultsManager: UserDefaultsManagerProtocol {
     isUserLoggedIn = true
     lastSyncDate = Date()
     print("⚙️ User session set for: \(userId)")
+  }
+  
+  func hasValidSession() -> Bool {
+    return isUserLoggedIn && getCurrentUser() != nil
   }
 }
