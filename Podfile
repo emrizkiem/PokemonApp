@@ -14,6 +14,7 @@ target 'PokemonApp' do
   pod 'XLPagerTabStrip', '~> 9.0'
   pod 'RealmSwift', '~> 10.0'
   pod 'Swinject', '~> 2.8'
+  pod 'SnapKit', '~> 5.0.0'
 
   target 'PokemonAppTests' do
     inherit! :search_paths

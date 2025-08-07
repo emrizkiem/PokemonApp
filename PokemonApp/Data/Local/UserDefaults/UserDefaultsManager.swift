@@ -17,6 +17,9 @@ protocol UserDefaultsManagerProtocol {
   var isFirstLaunch: Bool { get set }
   var lastSyncDate: Date? { get set }
   var isUserLoggedIn: Bool { get set }
+  
+  func clearUserSession()
+  func setUserSession(userId: String)
 }
 
 final class UserDefaultsManager: UserDefaultsManagerProtocol {

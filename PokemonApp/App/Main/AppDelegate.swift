@@ -24,7 +24,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   private func setupGlobalAppearance() {
     let navBarAppearance = UINavigationBarAppearance()
     navBarAppearance.configureWithOpaqueBackground()
-    navBarAppearance.backgroundColor = UIColor(hex: Constants.Colors.primary) // Purple
+    navBarAppearance.backgroundColor = UIColor(hex: Constants.Colors.primary)
     navBarAppearance.titleTextAttributes = [
       .foregroundColor: UIColor.white,
       .font: UIFont.systemFont(ofSize: 18, weight: .semibold)

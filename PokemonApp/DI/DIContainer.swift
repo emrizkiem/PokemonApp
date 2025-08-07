@@ -22,6 +22,8 @@ final class DIContainer {
     let assemblies: [Assembly] = [
       NetworkAssembly(),
       DatabaseAssembly(),
+      RepositoryAssembly(),
+      DomainAssembly(),
       AppAssembly(),
       PresentationAssembly()
     ]

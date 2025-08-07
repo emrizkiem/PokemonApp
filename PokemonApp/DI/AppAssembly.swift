@@ -14,5 +14,9 @@ final class AppAssembly: Assembly {
     container.register(SplashCoordinatorProtocol.self) { resolver in
       SplashCoordinator(container: resolver)
     }
+    
+    container.register(AuthCoordinatorProtocol.self) { resolver in
+      AuthCoordinator(container: resolver)
+    }
   }
 }

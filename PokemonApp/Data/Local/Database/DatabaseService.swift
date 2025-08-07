@@ -6,75 +6,78 @@
 //
 
 import Foundation
-import RealmSwift
 import RxSwift
+import RealmSwift
 
 protocol DatabaseServiceProtocol {
-  // MARK: 💾 CREATE/SAVE Operations
-  func store<T: Object>(_ object: T) -> Observable<Void>
-  func storeBatch<T: Object>(_ objects: [T]) -> Observable<Void>
-  
-  // MARK: 📖 READ Operations
-  func getAll<T: Object>(_ type: T.Type) -> Observable<[T]>
-  func find<T: Object>(_ type: T.Type, where predicate: NSPredicate) -> Observable<[T]>
-  func findFirst<T: Object>(_ type: T.Type, where predicate: NSPredicate) -> Observable<T?>
-  
-  // MARK: 🗑️ DELETE Operations
-  func remove<T: Object>(_ object: T) -> Observable<Void>
-  func removeWhere<T: Object>(_ type: T.Type, predicate: NSPredicate) -> Observable<Void>
-  func removeAll<T: Object>(_ type: T.Type) -> Observable<Void>
+  func registerUser(email: String, fullName: String, password: String) -> Observable<User>
+  func loginUser(email: String, password: String) -> Observable<User?>
+  func getUserById(userId: String) -> Observable<User?>
 }
 
 final class DatabaseService: DatabaseServiceProtocol {
   
-  private let realm: Realm
   private let backgroundQueue = DispatchQueue(label: "realm.background", qos: .utility)
   
   init() throws {
     do {
-      // Configure Realm
       var config = Realm.Configuration.defaultConfiguration
-      
-      // Set schema version and migration block
+      config.deleteRealmIfMigrationNeeded = true
       config.schemaVersion = 1
-      config.migrationBlock = { migration, oldSchemaVersion in
-        // Handle migrations here if needed
-        print("💾 Realm migration from version \(oldSchemaVersion)")
-      }
-      
-      // Set file URL
       config.fileURL = config.fileURL!.deletingLastPathComponent()
         .appendingPathComponent("PokemonApp.realm")
       
-      realm = try Realm(configuration: config)
+      _ = try Realm(configuration: config)
       
-      print("💾 RealmManager initialized successfully")
+      print("💾 DatabaseService initialized successfully")
       print("📁 Database location: \(config.fileURL?.absoluteString ?? "unknown")")
-      
     } catch {
       print("❌ Failed to initialize Realm: \(error)")
       throw DatabaseError.initializationFailed
     }
   }
   
-  func store<T: Object>(_ object: T) -> Observable<Void> {
-    return Observable.create { [weak self] observer in
-      self?.backgroundQueue.async {
+  func registerUser(email: String, fullName: String, password: String) -> Observable<User> {
+    return Observable.create { observer in
+      self.backgroundQueue.async {
         do {
           let realm = try Realm()
-          try realm.write {
-            realm.add(object, update: .modified)
+          
+          // Check if email already exists
+          let existingUser = realm.objects(UserEntity.self)
+            .filter("email == %@", email.lowercased()).first
+          
+          if existingUser != nil {
+            DispatchQueue.main.async {
+              print("❌ User already exists: \(email)")
+              observer.onError(AuthError.userAlreadyExists)
+            }
+            return
           }
           
+          // Create new user
+          let userEntity = UserEntity(email: email, fullName: fullName, password: password)
+          
+          try realm.write {
+            realm.add(userEntity, update: .modified)
+          }
+          
+          // Convert to domain model
+          let user = User(
+            id: userEntity.id,
+            email: userEntity.email,
+            fullName: userEntity.fullName,
+            createdAt: userEntity.createdAt
+          )
+          
           DispatchQueue.main.async {
-            print("✅ Stored object: \(String(describing: T.self))")
-            observer.onNext(())
+            print("✅ User registered: \(user.email)")
+            observer.onNext(user)
             observer.onCompleted()
           }
-          
         } catch {
           DispatchQueue.main.async {
-            print("❌ Failed to store object: \(error)")
+            print("❌ Failed to register user: \(error)")
             observer.onError(DatabaseError.saveFailed(error))
           }
         }
@@ -84,49 +87,42 @@ final class DatabaseService: DatabaseServiceProtocol {
     }
   }
   
-  func storeBatch<T: Object>(_ objects: [T]) -> Observable<Void> {
-    return Observable.create { [weak self] observer in
-      self?.backgroundQueue.async {
+  func loginUser(email: String, password: String) -> Observable<User?> {
+    return Observable.create { observer in
+      self.backgroundQueue.async {
         do {
           let realm = try Realm()
-          try realm.write {
-            realm.add(objects, update: .modified)
-          }
           
-          DispatchQueue.main.async {
-            print("✅ Stored batch of \(objects.count) objects: \(String(describing: T.self))")
-            observer.onNext(())
-            observer.onCompleted()
-          }
+          // Find user with matching email and password
+          let userEntity = realm.objects(UserEntity.self)
+            .filter("email == %@ AND password == %@ AND isActive == true",
+                    email.lowercased(), password)
+            .first
           
+          if let userEntity = userEntity {
+            // Convert to domain model
+            let user = User(
+              id: userEntity.id,
+              email: userEntity.email,
+              fullName: userEntity.fullName,
+              createdAt: userEntity.createdAt
+            )
+            
+            DispatchQueue.main.async {
+              print("✅ User logged in: \(user.email)")
+              observer.onNext(user)
+              observer.onCompleted()
+            }
+          } else {
+            DispatchQueue.main.async {
+              print("❌ Invalid credentials for: \(email)")
+              observer.onNext(nil)
+              observer.onCompleted()
+            }
+          }
         } catch {
           DispatchQueue.main.async {
-            print("❌ Failed to store batch: \(error)")
-            observer.onError(DatabaseError.saveFailed(error))
-          }
-        }
-      }
-      
-      return Disposables.create()
-    }
-  }
-  
-  func getAll<T: Object>(_ type: T.Type) -> Observable<[T]> {
-    return Observable.create { [weak self] observer in
-      self?.backgroundQueue.async {
-        do {
-          let realm = try Realm()
-          let results = Array(realm.objects(type))
-          
-          DispatchQueue.main.async {
-            print("✅ Retrieved all \(results.count) objects: \(String(describing: type))")
-            observer.onNext(results)
-            observer.onCompleted()
-          }
-          
-        } catch {
-          DispatchQueue.main.async {
-            print("❌ Failed to get all objects: \(error)")
+            print("❌ Login error: \(error)")
             observer.onError(DatabaseError.queryFailed(error))
           }
         }
@@ -136,135 +132,38 @@ final class DatabaseService: DatabaseServiceProtocol {
     }
   }
   
-  func find<T: Object>(_ type: T.Type, where predicate: NSPredicate) -> Observable<[T]> {
-    return Observable.create { [weak self] observer in
-      self?.backgroundQueue.async {
+  func getUserById(userId: String) -> Observable<User?> {
+    return Observable.create { observer in
+      self.backgroundQueue.async {
         do {
           let realm = try Realm()
-          let results = Array(realm.objects(type).filter(predicate))
           
-          DispatchQueue.main.async {
-            print("✅ Found \(results.count) objects matching criteria: \(String(describing: type))")
-            observer.onNext(results)
-            observer.onCompleted()
+          if let userEntity = realm.object(ofType: UserEntity.self, forPrimaryKey: userId),
+             userEntity.isActive {
+            
+            let user = User(
+              id: userEntity.id,
+              email: userEntity.email,
+              fullName: userEntity.fullName,
+              createdAt: userEntity.createdAt
+            )
+            
+            DispatchQueue.main.async {
+              print("✅ Found user: \(user.email)")
+              observer.onNext(user)
+              observer.onCompleted()
+            }
+          } else {
+            DispatchQueue.main.async {
+              print("❌ User not found: \(userId)")
+              observer.onNext(nil)
+              observer.onCompleted()
+            }
           }
-          
         } catch {
           DispatchQueue.main.async {
-            print("❌ Failed to find objects: \(error)")
+            print("❌ Error getting user: \(error)")
             observer.onError(DatabaseError.queryFailed(error))
-          }
-        }
-      }
-      
-      return Disposables.create()
-    }
-  }
-  
-  func findFirst<T: Object>(_ type: T.Type, where predicate: NSPredicate) -> Observable<T?> {
-    return Observable.create { [weak self] observer in
-      self?.backgroundQueue.async {
-        do {
-          let realm = try Realm()
-          let result = realm.objects(type).filter(predicate).first
-          
-          DispatchQueue.main.async {
-            print("✅ Found first object: \(String(describing: type))")
-            observer.onNext(result)
-            observer.onCompleted()
-          }
-          
-        } catch {
-          DispatchQueue.main.async {
-            print("❌ Failed to find first object: \(error)")
-            observer.onError(DatabaseError.queryFailed(error))
-          }
-        }
-      }
-      
-      return Disposables.create()
-    }
-  }
-  
-  func remove<T: Object>(_ object: T) -> Observable<Void> {
-    return Observable.create { [weak self] observer in
-      self?.backgroundQueue.async {
-        do {
-          let realm = try Realm()
-          try realm.write {
-            realm.delete(object)
-          }
-          
-          DispatchQueue.main.async {
-            print("✅ Removed object: \(String(describing: T.self))")
-            observer.onNext(())
-            observer.onCompleted()
-          }
-          
-        } catch {
-          DispatchQueue.main.async {
-            print("❌ Failed to remove object: \(error)")
-            observer.onError(DatabaseError.deleteFailed(error))
-          }
-        }
-      }
-      
-      return Disposables.create()
-    }
-  }
-  
-  func removeWhere<T: Object>(_ type: T.Type, predicate: NSPredicate) -> Observable<Void> {
-    return Observable.create { [weak self] observer in
-      self?.backgroundQueue.async {
-        do {
-          let realm = try Realm()
-          let objectsToDelete = realm.objects(type).filter(predicate)
-          let count = objectsToDelete.count
-          
-          try realm.write {
-            realm.delete(objectsToDelete)
-          }
-          
-          DispatchQueue.main.async {
-            print("✅ Removed \(count) objects matching criteria: \(String(describing: type))")
-            observer.onNext(())
-            observer.onCompleted()
-          }
-          
-        } catch {
-          DispatchQueue.main.async {
-            print("❌ Failed to remove objects: \(error)")
-            observer.onError(DatabaseError.deleteFailed(error))
-          }
-        }
-      }
-      
-      return Disposables.create()
-    }
-  }
-  
-  func removeAll<T: Object>(_ type: T.Type) -> Observable<Void> {
-    return Observable.create { [weak self] observer in
-      self?.backgroundQueue.async {
-        do {
-          let realm = try Realm()
-          let objectsToDelete = realm.objects(type)
-          let count = objectsToDelete.count
-          
-          try realm.write {
-            realm.delete(objectsToDelete)
-          }
-          
-          DispatchQueue.main.async {
-            print("✅ Removed all \(count) objects: \(String(describing: type))")
-            observer.onNext(())
-            observer.onCompleted()
-          }
-          
-        } catch {
-          DispatchQueue.main.async {
-            print("❌ Failed to remove all objects: \(error)")
-            observer.onError(DatabaseError.deleteFailed(error))
           }
         }
       }

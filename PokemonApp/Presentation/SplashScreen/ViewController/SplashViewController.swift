@@ -8,6 +8,7 @@
 import UIKit
 import RxSwift
 import RxCocoa
+import SnapKit
 
 protocol SplashViewControllerDelegate: AnyObject {
   func splashDidComplete()
@@ -56,7 +57,7 @@ final class SplashViewController: BaseViewController<SplashViewModel> {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-
+    
     startUIAnimation()
   }
   
@@ -112,23 +113,24 @@ final class SplashViewController: BaseViewController<SplashViewModel> {
   }
   
   private func setupConstraints() {
-    NSLayoutConstraint.activate([
-      logoContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-      logoContainer.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -100),
-      logoContainer.widthAnchor.constraint(equalToConstant: 100),
-      logoContainer.heightAnchor.constraint(equalToConstant: 100),
-      
-      logoLabel.centerXAnchor.constraint(equalTo: logoContainer.centerXAnchor),
-      logoLabel.centerYAnchor.constraint(equalTo: logoContainer.centerYAnchor),
-      
-      titleLabel.topAnchor.constraint(equalTo: logoContainer.bottomAnchor, constant: Constants.Spacing.md),
-      titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.Spacing.xl),
-      titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.Spacing.xl),
-      
-      subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: Constants.Spacing.sm),
-      subtitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.Spacing.xl),
-      subtitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.Spacing.xl)
-    ])
+    logoContainer.snp.makeConstraints { make in
+      make.centerX.equalToSuperview()
+      make.centerY.equalToSuperview().offset(-100)
+      make.size.equalTo(100)
+    }
+    
+    logoLabel.snp.makeConstraints { make in
+      make.center.equalToSuperview()
+    }
+    
+    titleLabel.snp.makeConstraints { make in
+      make.top.equalTo(logoContainer.snp.bottom).offset(Constants.Spacing.md)
+      make.leading.trailing.equalToSuperview().inset(Constants.Spacing.xl)
+    }
+    
+    subtitleLabel.snp.makeConstraints { make in
+      make.top.equalTo(titleLabel.snp.bottom).offset(Constants.Spacing.sm)
+      make.leading.trailing.equalToSuperview().inset(Constants.Spacing.xl)
+    }
   }
 }
-

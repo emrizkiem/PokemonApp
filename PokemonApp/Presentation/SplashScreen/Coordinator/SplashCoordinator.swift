@@ -10,7 +10,7 @@ import Swinject
 
 protocol SplashCoordinatorProtocol {
   var delegate: SplashCoordinatorDelegate? { get set }
-  func start(window: UIWindow)
+  func start(navigationController: UINavigationController)
 }
 
 protocol SplashCoordinatorDelegate: AnyObject {
@@ -26,7 +26,7 @@ final class SplashCoordinator: SplashCoordinatorProtocol {
     self.container = container
   }
   
-  func start(window: UIWindow) {
+  func start(navigationController: UINavigationController) {
     guard let splashViewController = container.resolve(SplashViewController.self) else {
       fatalError("❌ Failed to resolve SplashViewController from DI container")
     }
@@ -36,9 +36,7 @@ final class SplashCoordinator: SplashCoordinatorProtocol {
     }
     
     splashViewController.delegate = self
-    
-    window.rootViewController = splashViewController
-    window.makeKeyAndVisible()
+    navigationController.setViewControllers([splashViewController], animated: false)
   }
 }
 

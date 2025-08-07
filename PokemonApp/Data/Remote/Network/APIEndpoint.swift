@@ -23,7 +23,6 @@ enum HTTPMethod: String {
   case DELETE = "DELETE"
 }
 
-// MARK: - Pokemon API Endpoints
 enum PokemonEndpoint: APIEndpoint {
   case pokemonList(limit: Int, offset: Int)
   case pokemonDetail(id: Int)

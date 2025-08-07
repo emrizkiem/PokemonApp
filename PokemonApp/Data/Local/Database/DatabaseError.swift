@@ -9,13 +9,10 @@ import Foundation
 
 enum DatabaseError: Error, LocalizedError {
   case initializationFailed
-  case objectNotFound
   case saveFailed(Error)
-  case deleteFailed(Error)
   case queryFailed(Error)
-  case invalidObject
-  case constraintViolation(String)
-  case unknown(Error)
+  case deleteFailed(Error)
+  case objectNotFound
   
   var errorDescription: String? {
     switch self {
@@ -29,12 +26,6 @@ enum DatabaseError: Error, LocalizedError {
       return "Failed to delete object: \(error.localizedDescription)"
     case .queryFailed(let error):
       return "Failed to query database: \(error.localizedDescription)"
-    case .invalidObject:
-      return "Invalid object provided"
-    case .constraintViolation(let message):
-      return "Constraint violation: \(message)"
-    case .unknown(let error):
-      return "Unknown database error: \(error.localizedDescription)"
     }
   }
 }
