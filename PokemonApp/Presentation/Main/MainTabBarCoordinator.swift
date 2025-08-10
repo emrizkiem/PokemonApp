@@ -96,14 +96,39 @@ final class MainTabBarCoordinator: MainTabBarCoordinatorProtocol {
     delegate?.mainAppDidLogout()
   }
   
-  func showPageDetail() {
+  private func showPokemonDetail(_ pokemon: Pokemon) {
+    let pokemonDetailVC = createPokemonDetailViewController(pokemon: pokemon)
     
+    let detailNavigationController = UINavigationController(rootViewController: pokemonDetailVC)
+    detailNavigationController.modalPresentationStyle = .fullScreen
+    detailNavigationController.modalTransitionStyle = .coverVertical
+    detailNavigationController.isNavigationBarHidden = true
+    
+    navigationController?.present(detailNavigationController, animated: true) {
+      print("✅ Pokemon detail presented successfully")
+    }
+  }
+  
+  private func createPokemonDetailViewController(pokemon: Pokemon) -> PokemonDetailViewController {
+    guard let factory = container.resolve(PokemonDetailViewControllerFactory.self) else {
+      fatalError("❌ Failed to resolve PokemonDetailViewControllerFactory from DI container")
+    }
+    
+    let pokemonDetailVC = factory.createPokemonDetailViewController(pokemon: pokemon)
+    
+    pokemonDetailVC.viewModel?.onClose = { [weak self] in
+      self?.navigationController?.dismiss(animated: true) {
+        print("✅ Pokemon detail dismissed successfully")
+      }
+    }
+    
+    return pokemonDetailVC
   }
 }
 
 extension MainTabBarCoordinator: HomeViewControllerDelegate {
   func homeDidSelectPokemon(_ pokemon: Pokemon) {
-    //
+    showPokemonDetail(pokemon)
   }
 }
 

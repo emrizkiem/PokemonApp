@@ -14,6 +14,7 @@ final class PresentationAssembly: Assembly {
     assembleAuthModule(container: container)
     assembleHomeModule(container: container)
     assembleProfileModule(container: container)
+    assemblePokemonDetail(container: container)
   }
   
   private func assembleSplashModule(container: Container) {
@@ -119,5 +120,11 @@ final class PresentationAssembly: Assembly {
       viewController.userDefaultsManager = userDefaultsManager
       return viewController
     }
+  }
+  
+  private func assemblePokemonDetail(container: Container) {
+    container.register(PokemonDetailViewControllerFactory.self) { resolver in
+      return PokemonDetailViewControllerFactoryImpl(container: resolver)
+    }.inObjectScope(.container)
   }
 }

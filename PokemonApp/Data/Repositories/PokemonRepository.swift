@@ -11,8 +11,8 @@ import RxSwift
 final class PokemonRepository: PokemonRepositoryProtocol {
   
   private let networkService: NetworkServiceProtocol
-  private var pokemonCache: [Int: Pokemon] = [:] // Cache by ID
-  private var pokemonListCache: [Pokemon] = [] // Cache loaded pages
+  private var pokemonCache: [Int: Pokemon] = [:]
+  private var pokemonListCache: [Pokemon] = [] 
   private var totalPokemonCount: Int = 0
   
   init(networkService: NetworkServiceProtocol) {
@@ -23,7 +23,6 @@ final class PokemonRepository: PokemonRepositoryProtocol {
     return networkService
       .request(PokemonEndpoint.pokemonList(limit: limit, offset: offset), responseType: PokemonListResponse.self)
       .map { [weak self] response in
-        
         let simplePokemons = response.results.compactMap { $0.toSimplePokemon() }
         
         self?.cachePokemonList(simplePokemons)
@@ -42,7 +41,7 @@ final class PokemonRepository: PokemonRepositoryProtocol {
         return Observable.error(error)
       }
   }
-  
+
   func searchPokemon(_ query: String, limit: Int, offset: Int) -> Observable<PokemonPage> {
     let cacheResults = searchInCache(query: query, limit: limit, offset: offset)
     if !cacheResults.pokemons.isEmpty || pokemonListCache.count >= 200 {
@@ -77,7 +76,6 @@ final class PokemonRepository: PokemonRepositoryProtocol {
   }
   
   private func searchByPokemonId(_ pokemonId: Int, limit: Int, offset: Int) -> Observable<PokemonPage> {
-    
     if let cachedPokemon = pokemonCache[pokemonId] {
       let page = PokemonPage(
         pokemons: [cachedPokemon],
@@ -159,11 +157,13 @@ final class PokemonRepository: PokemonRepositoryProtocol {
       
       pokemonCache[pokemon.id] = pokemon
     }
+    
     pokemonListCache.sort { $0.id < $1.id }
   }
   
   func fetchPokemonDetail(id: Int) -> Observable<Pokemon> {
-    if let cachedPokemon = pokemonCache[id] {
+    if let cachedPokemon = pokemonCache[id],
+       cachedPokemon.height > 0 && cachedPokemon.weight > 0 && !cachedPokemon.stats.isEmpty {
       return Observable.just(cachedPokemon)
     }
     
@@ -171,8 +171,17 @@ final class PokemonRepository: PokemonRepositoryProtocol {
       .request(PokemonEndpoint.pokemonDetail(id: id), responseType: PokemonDetailResponse.self)
       .map { [weak self] response in
         let pokemon = response.toDomain()
+        
         self?.pokemonCache[id] = pokemon
+        
         return pokemon
+      }
+      .catch { error in
+        if let cachedPokemon = self.pokemonCache[id] {
+          return Observable.just(cachedPokemon)
+        }
+        
+        return Observable.error(error)
       }
   }
   
