@@ -12,7 +12,6 @@ final class DomainAssembly: Assembly {
   
   func assemble(container: Container) {
     container.register(LoginUseCaseProtocol.self) { resolver in
-      
       guard let userRepository = resolver.resolve(UserRepositoryProtocol.self) else {
         fatalError("❌ Failed to resolve UserRepository for LoginUseCase")
       }
@@ -21,7 +20,6 @@ final class DomainAssembly: Assembly {
     }.inObjectScope(.container)
     
     container.register(RegisterUseCaseProtocol.self) { resolver in
-      
       guard let userRepository = resolver.resolve(UserRepositoryProtocol.self) else {
         fatalError("❌ Failed to resolve UserRepository for RegisterUseCase")
       }
@@ -30,7 +28,6 @@ final class DomainAssembly: Assembly {
     }.inObjectScope(.container)
     
     container.register(LogoutUseCaseProtocol.self) { resolver in
-      
       guard let userRepository = resolver.resolve(UserRepositoryProtocol.self) else {
         fatalError("❌ Failed to resolve UserRepository for LogoutUseCase")
       }
@@ -39,12 +36,19 @@ final class DomainAssembly: Assembly {
     }.inObjectScope(.container)
     
     container.register(GetCurrentUserUseCaseProtocol.self) { resolver in
-      
       guard let userRepository = resolver.resolve(UserRepositoryProtocol.self) else {
         fatalError("❌ Failed to resolve UserRepository for GetCurrentUserUseCase")
       }
       
       return GetCurrentUserUseCase(userRepository: userRepository)
+    }.inObjectScope(.container)
+    
+    container.register(PokemonUseCaseProtocol.self) { resolver in
+      guard let pokemonRepository = resolver.resolve(PokemonRepositoryProtocol.self) else {
+        fatalError("❌ Failed to resolve PokemonRepository for PokemonUseCase")
+      }
+      
+      return PokemonUseCase(repository: pokemonRepository)
     }.inObjectScope(.container)
   }
 }

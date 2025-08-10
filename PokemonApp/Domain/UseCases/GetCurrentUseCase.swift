@@ -34,15 +34,12 @@ final class GetCurrentUserUseCase: GetCurrentUserUseCaseProtocol {
     return userRepository.getCurrentUser()
       .map { user in
         if let user = user {
-          print("GetCurrentUserUseCase: Current user found - \(user.fullName)")
           return CurrentUserResult.loggedIn(user)
         } else {
-          print("GetCurrentUserUseCase: No current user in database")
           return CurrentUserResult.notLoggedIn
         }
       }
       .catch { error in
-        print("GetCurrentUserUseCase: Error getting current user - \(error)")
         return Observable.just(.error(.sessionExpired))
       }
   }

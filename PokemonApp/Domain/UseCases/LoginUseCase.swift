@@ -47,13 +47,9 @@ final class LoginUseCase: LoginUseCaseProtocol {
         return Disposables.create()
       }
       
-      print("LoginUseCase: Calling repository.loginUser")
-      
       let subscription = self.userRepository.loginUser(email: cleanEmail, password: password)
         .subscribe(
           onNext: { user in
-            print("🎯 LoginUseCase: Repository returned result")
-            
             if let user = user {
               print("LoginUseCase: Login successful for \(user.fullName)")
               observer.onNext(.success(user))

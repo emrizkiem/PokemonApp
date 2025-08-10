@@ -95,10 +95,16 @@ final class MainTabBarCoordinator: MainTabBarCoordinatorProtocol {
     userDefaultsManager.clearUserSession()
     delegate?.mainAppDidLogout()
   }
+  
+  func showPageDetail() {
+    
+  }
 }
 
 extension MainTabBarCoordinator: HomeViewControllerDelegate {
-  // Navigation handled by XLPagerTabStrip
+  func homeDidSelectPokemon(_ pokemon: Pokemon) {
+    //
+  }
 }
 
 extension MainTabBarCoordinator: ProfileViewControllerDelegate {

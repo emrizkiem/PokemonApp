@@ -74,8 +74,20 @@ final class PresentationAssembly: Assembly {
   }
   
   private func assembleHomeModule(container: Container) {
+    container.register(HomeViewModelProtocol.self) { resolver in
+      guard let pokemonUseCase = resolver.resolve(PokemonUseCaseProtocol.self) else {
+        fatalError("❌ DI: Failed to resolve PokemonUseCaseProtocol")
+      }
+      
+      return HomeViewModel(pokemonUseCase: pokemonUseCase)
+    }
+    
     container.register(HomeViewModel.self) { resolver in
-      return HomeViewModel()
+      guard let pokemonUseCase = resolver.resolve(PokemonUseCaseProtocol.self) else {
+        fatalError("❌ DI: Failed to resolve PokemonUseCaseProtocol")
+      }
+      
+      return HomeViewModel(pokemonUseCase: pokemonUseCase)
     }
     
     container.register(HomeViewController.self) { resolver in

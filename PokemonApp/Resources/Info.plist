@@ -37,16 +37,8 @@
             </array>
         </dict>
     </dict>
-    
-    <!-- 🔧 OPTION 1: Try without Base.lproj path first -->
-    <!-- <key>UILaunchStoryboardName</key>
-    <string>LaunchScreen</string> -->
-    
-    <!-- 🔧 OPTION 2: If Option 1 doesn't work, try this instead: -->
     <key>UILaunchStoryboardName</key> 
     <string>App/Main/Base.lproj/LaunchScreen</string>
-    
-    <!-- ✅ REQUIRED: Supported Orientations -->
     <key>UISupportedInterfaceOrientations</key>
     <array>
         <string>UIInterfaceOrientationPortrait</string>
@@ -60,13 +52,11 @@
         <string>UIInterfaceOrientationLandscapeLeft</string>
         <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
-    
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>
         <true/>
-    </dict>
-    
+    </dict>    
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
 </dict>

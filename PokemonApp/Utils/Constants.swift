@@ -15,7 +15,7 @@ struct Constants {
   
   struct API {
     static let baseURL = "https://pokeapi.co/api/v2"
-    static let timeoutInterval: TimeInterval = 30
+    static let timeoutInterval: TimeInterval = 60.0
     static let pokemonPerPage = 10
   }
   
